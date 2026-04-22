@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备故障查询表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .search-box button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-search {
+            background-color: #409eff;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #67c23a;
+            color: white;
+        }
+        .type-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .type-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .type-btn.active {
+            background-color: #409eff;
+            color: white;
+            border-color: #409eff;
+        }
+        .type-manage-box {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .type-manage-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .btn-add-type {
+            background-color: #409eff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-del-type {
+            background-color: #f56c6c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #999;
+        }
+        .btn-add {
+            margin-bottom: 15px;
+            padding: 8px 16px;
+            background-color: #409eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .hide-btn {
+            display: none;
+        }
+        .edit-form {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .form-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .form-content h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .form-item {
+            margin-bottom: 12px;
+        }
+        .form-item label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+        .form-item input, .form-item textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-item textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .btn-add {
+            background-color: #409eff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-edit {
+            background-color: #409eff;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .btn-del {
+            background-color: #f56c6c;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-box {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .login-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 300px;
+        }
+        .login-content h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .login-item {
+            margin-bottom: 15px;
+        }
+        .login-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .login-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .login-btns button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tip-user {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .tip-admin {
+            text-align: center;
+            color: #e6a23c;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .tip-online {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>设备故障查询表</h1>
+            <div id="userTip" class="tip-user">客户查看模式 · 只读</div>
+            
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <input type="text" id="faultCodeInput" placeholder="输入报错代码搜索（支持模糊查询）">
+                <button class="btn-search" onclick="searchFault()">搜索</button>
+                <button class="btn-reset" onclick="resetSearch()">重置</button>
+            </div>
+
+            <!-- 机型管理区（管理员可见） -->
+            <div class="type-manage-box" id="typeManageBox">
+                <input type="text" class="type-manage-input" id="newTypeName" placeholder="输入新机型名称（如：写真机）">
+                <button class="btn-add-type" onclick="addNewType()">添加机型</button>
+                <button class="btn-del-type" onclick="deleteCurrentType()">删除当前机型</button>
+                <!-- 新增备份/恢复按钮 -->
+                <button class="btn-add-type" onclick="exportData()">导出备份</button>
+                <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none">
+                <button class="btn-del-type" onclick="document.getElementById('importFile').click()">导入恢复</button>
+            </div>
+
+            <!-- 机型切换按钮 -->
+            <div class="type-box" id="typeBox"></div>
+
+            <!-- 新增故障按钮（管理员可见） -->
+            <button class="btn-add hide-btn" id="addBtn" onclick="showAddForm()">新增故障</button>
+            <button class="btn-add hide-btn" id="logoutBtn" onclick="logoutAdmin()">退出管理员</button>
+        </div>
+
+        <!-- 登录框 -->
+        <div class="login-box" id="loginBox">
+            <div class="login-content">
+                <h3>管理员登录</h3>
+                <div class="login-item">
+                    <input type="password" id="pwdInput" placeholder="请输入管理员密码">
+                </div>
+                <div class="login-btns">
+                    <button class="btn-search" onclick="loginAdmin()">登录</button>
+                    <button class="btn-reset" onclick="toggleLoginBox()">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑/新增表单 -->
+        <div class="edit-form" id="editForm">
+            <div class="form-content">
+                <h3>故障信息编辑</h3>
+                <input type="hidden" id="editIndex">
+                <div class="form-item">
+                    <label>报错代码：</label>
+                    <input type="text" id="editCode" placeholder="如：E101">
+                </div>
+                <div class="form-item">
+                    <label>故障描述：</label>
+                    <textarea id="editDesc" placeholder="详细描述故障现象"></textarea>
+                </div>
+                <div class="form-item">
+                    <label>解决方案：</label>
+                    <textarea id="editSolution" placeholder="详细描述解决步骤"></textarea>
+                </div>
+                <div class="form-item">
+                    <label>备注：</label>
+                    <input type="text" id="editRemark" placeholder="选填，补充说明">
+                </div>
+                <div class="form-btns">
+                    <button class="btn btn-add" onclick="saveEdit()">保存提交</button>
+                    <button class="btn btn-reset" onclick="closeEditForm()">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>报错代码</th>
+                        <th>故障描述</th>
+                        <th>解决方案</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="5" class="empty-tip">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tip-online">长按页面空白处2秒可唤起管理员登录</div>
+    </div>
+
+<script>
+    // ================== 核心配置 ==================
+    const ADMIN_PASSWORD = "123456";       // 管理员密码
+    const HIDE_PASSWORD = "88888888";   // 隐藏口令（搜索框输入显示登录）
+    const DEFAULT_TYPES = [                // 默认初始机型
+     "旗帜双喷", "UV双喷", "平板机","喷绘机", "其他机型"
+    ];
+    // 替换为你的Gist信息（已填好）
+    const GIST_ID = "7b241538c2cfd0f9f6c06c20cc67f0d4e";
+    const GITHUB_USERNAME = "yw886";
+
+    let isAdmin = false;
+    let currentType = "";
+    let allData = {};
+
+    // ================== 触发登录框（适配公众号） ==================
+    // 方式1：长按页面空白处2秒触发（公众号内置浏览器兼容）
+    let pressTimer = null;
+    let isPressing = false;
+    
+    // 监听整个页面的长按
+    document.body.addEventListener('touchstart', (e) => {
+        // 只在空白处/提示文字区域触发
+        if (e.target.tagName === 'BODY' || e.target.classList.contains('tip-online')) {
+            isPressing = true;
+            pressTimer = setTimeout(() => {
+                if (isPressing) toggleLoginBox();
+            }, 2000); // 长按2秒
+        }
+    });
+    // 松开/移开取消
+    document.body.addEventListener('touchend', () => {
+        isPressing = false;
+        clearTimeout(pressTimer);
+    });
+    document.body.addEventListener('touchmove', () => {
+        isPressing = false;
+        clearTimeout(pressTimer);
+    });
+
+    // 方式2：搜索框输入隐藏口令触发（最稳定）
+    document.getElementById('faultCodeInput').addEventListener('blur', function() {
+        const inputVal = this.value.trim();
+        if (inputVal === HIDE_PASSWORD) {
+            this.value = ""; // 清空输入框，隐藏痕迹
+            toggleLoginBox();
+        }
+    });
+
+    // 显示/隐藏登录框
+    function toggleLoginBox() {
+        const loginBox = document.getElementById("loginBox");
+        loginBox.style.display = loginBox.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    // ================== 机型管理核心功能 ==================
+    // 渲染机型按钮
+    function renderTypeButtons() {
+        const typeBox = document.getElementById("typeBox");
+        typeBox.innerHTML = "";
+        // 获取所有机型名称
+        const typeNames = Object.keys(allData);
+        
+        // 无数据时加载默认机型
+        if (typeNames.length === 0) {
+            DEFAULT_TYPES.forEach(type => {
+                allData[type] = [];
+            });
+            saveCloud(); // 同步默认机型到云端
+        }
+
+        // 生成机型按钮
+        Object.keys(allData).forEach(typeName => {
+            const btn = document.createElement('button');
+            btn.className = `type-btn ${currentType === typeName ? 'active' : ''}`;
+            btn.dataset.type = typeName;
+            btn.innerText = typeName;
+            btn.onclick = () => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentType = typeName;
+                renderTable(); // 切换机型后刷新表格
+            };
+            typeBox.appendChild(btn);
+        });
+
+        // 初始化默认选中第一个机型
+        if (!currentType && Object.keys(allData).length > 0) {
+            currentType = Object.keys(allData)[0];
+            document.querySelector('.type-btn').classList.add('active');
+            renderTable();
+        }
+    }
+
+    // 添加新机型
+    function addNewType() {
+        if (!isAdmin) return;
+        const newTypeName = document.getElementById("newTypeName").value.trim();
+        if (!newTypeName) {
+            alert("请输入机型名称！");
+            return;
+        }
+        if (allData[newTypeName]) {
+            alert("该机型已存在！");
+            return;
+        }
+        // 添加新机型（空数据）
+        allData[newTypeName] = [];
+        // 清空输入框
+        document.getElementById("newTypeName").value = "";
+        // 同步到云端
+        saveCloud().then(() => {
+            renderTypeButtons();
+            alert(`新增机型【${newTypeName}】成功！`);
+        });
+    }
+
+    // 删除当前机型
+    function deleteCurrentType() {
+        if (!isAdmin) return;
+        if (!currentType) {
+            alert("请先选择要删除的机型！");
+            return;
+        }
+        // 确认删除（防止误删）
+        if (!confirm(`确定删除机型【${currentType}】吗？该机型下的所有故障数据也会被删除！`)) {
+            return;
+        }
+        // 删除机型
+        delete allData[currentType];
+        // 同步到云端
+        saveCloud().then(() => {
+            // 重置当前机型
+            currentType = Object.keys(allData).length > 0 ? Object.keys(allData)[0] : "";
+            renderTypeButtons();
+            alert(`删除机型【${currentType}】成功！`);
+        });
+    }
+
+    // ================== 云端数据交互（适配Gist，国内可用） ==================
+    // 加载云端数据
+    async function loadCloud() {
+        try {
+            // 使用Gist镜像地址加载数据
+            const res = await fetch(`https://gist.fgit.cf/${GITHUB_USERNAME}/${GIST_ID}/raw/fault-data.json`);
+            if (res.ok) {
+                const cloudData = await res.json();
+                allData = typeof cloudData === 'object' && cloudData !== null ? cloudData : {};
+            } else {
+                // 云端无数据时加载默认机型
+                DEFAULT_TYPES.forEach(type => {
+                    allData[type] = [];
+                });
+            }
+        } catch (e) {
+            // 网络错误/镜像访问失败时，优先加载本地存储
+            const localData = localStorage.getItem("yaselanFaultData");
+            if (localData) {
+                allData = JSON.parse(localData);
+            } else {
+                DEFAULT_TYPES.forEach(type => {
+                    allData[type] = [];
+                });
+            }
+            console.warn("云端加载失败，使用本地数据：", e);
+        }
+        // 渲染机型按钮
+        renderTypeButtons();
+    }
+
+    // 保存到云端（Gist）+ 本地备份
+    async function saveCloud() {
+        try {
+            // 先备份到本地存储
+            localStorage.setItem("yaselanFaultData", JSON.stringify(allData));
+            
+            // 获取Gist版本号
+            const gistRes = await fetch(`https://gist.fgit.cf/${GITHUB_USERNAME}/${GIST_ID}`);
+            const gistData = await gistRes.json();
+            const sha = gistData.files["fault-data.json"]?.sha;
+
+            if (!sha) {
+                throw new Error("获取Gist版本号失败");
+            }
+
+            // 上传数据到Gist
+            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                body: JSON.stringify({
+                    files: {
+                        "fault-data.json": {
+                            sha: sha,
+                            content: JSON.stringify(allData, null, 2)
+                        }
+                    }
+                }),
+                timeout: 10000
+            });
+
+            if (response.ok) {
+                return true;
+            } else {
+                throw new Error("Gist同步失败");
+            }
+        } catch (e) {
+            alert("云端同步失败！数据已保存到本地（换设备需手动导出备份）");
+            console.error("云端保存失败：", e);
+            return false;
+        }
+    }
+
+    // ================== 本地备份/恢复功能 ==================
+    function exportData() {
+        if (!isAdmin) return;
+        // 生成JSON文件下载
+        const dataStr = JSON.stringify(allData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `故障数据_${new Date().toLocaleDateString()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert("数据已导出到本地！");
+    }
+
+    function importData(event) {
+        if (!isAdmin) return;
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importData = JSON.parse(e.target.result);
+                allData = importData;
+                // 同步到本地和云端
+                localStorage.setItem("yaselanFaultData", JSON.stringify(allData));
+                saveCloud();
+                renderTypeButtons();
+                renderTable();
+                alert("数据恢复成功！");
+            } catch (e) {
+                alert("文件格式错误！请选择导出的JSON备份文件");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // ================== 权限管理 ==================
+    function loginAdmin() {
+        let pwd = document.getElementById("pwdInput").value.trim();
+        if (pwd === ADMIN_PASSWORD) { 
+            isAdmin = true; 
+            alert("管理员登录成功！");
+            // 显示机型管理区和新增故障按钮
+            document.getElementById("typeManageBox").style.display = "flex";
+            document.getElementById("addBtn").classList.remove("hide-btn");
+            document.getElementById("logoutBtn").classList.remove("hide-btn");
+            document.getElementById("userTip").className = "tip-admin";
+            document.getElementById("userTip").innerText = "管理员模式 · 可编辑";
+        } else {
+            alert("密码错误！");
+        }
+    }
+
+    function logoutAdmin() { 
+        isAdmin = false; 
+        alert("已退出管理员模式！");
+        // 隐藏机型管理区和新增故障按钮
+        document.getElementById("typeManageBox").style.display = "none";
+        document.getElementById("addBtn").classList.add("hide-btn");
+        document.getElementById("logoutBtn").classList.add("hide-btn");
+        document.getElementById("userTip").className = "tip-user";
+        document.getElementById("userTip").innerText = "客户查看模式 · 只读";
+        toggleLoginBox(); // 退出后隐藏登录框
+    }
+
+    // ================== 表格渲染 ==================
+    function renderTable(list = allData[currentType] || []) {
+        let body = document.getElementById("tableBody");
+        body.innerHTML = "";
+        if (!list.length) {
+            body.innerHTML = `<tr><td colspan="5" class="empty-tip">暂无【${currentType}】故障记录</td></tr>`;
+            return;
+        }
+        list.forEach((item, index) => {
+            let operate = isAdmin
+                ? `<button class="btn-edit" onclick="editFault(${index})">编辑</button>
+                   <button class="btn-del" onclick="delFault(${index})">删除</button>`
+                : "";
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.code}</td>
+                <td>${item.desc}</td>
+                <td>${item.solution}</td>
+                <td>${item.remark}</td>
+                <td>${operate}</td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    // ================== 搜索功能 ==================
+    function searchFault() {
+        let keyword = document.getElementById("faultCodeInput").value.trim();
+        let data = allData[currentType] || [];
+        let result = keyword ? data.filter(item => item.code.includes(keyword)) : data;
+        renderTable(result);
+    }
+
+    function resetSearch() {
+        document.getElementById("faultCodeInput").value = "";
+        renderTable();
+    }
+
+    // ================== 故障数据增删改 ==================
+    function showAddForm() { 
+        if (!isAdmin) return; 
+        document.getElementById("editIndex").value = ""; 
+        document.getElementById("editCode").value = "";
+        document.getElementById("editDesc").value = "";
+        document.getElementById("editSolution").value = "";
+        document.getElementById("editRemark").value = "";
+        document.getElementById("editForm").style.display = "block"; 
+    }
+
+    function editFault(index) {
+        if (!isAdmin) return;
+        let item = allData[currentType][index];
+        document.getElementById("editIndex").value = index;
+        document.getElementById("editCode").value = item.code;
+        document.getElementById("editDesc").value = item.desc;
+        document.getElementById("editSolution").value = item.solution;
+        document.getElementById("editRemark").value = item.remark;
+        document.getElementById("editForm").style.display = "block";
+    }
+
+    function closeEditForm() { 
+        document.getElementById("editForm").style.display = "none"; 
+    }
+
+    async function saveEdit() {
+        if (!isAdmin) return;
+        let code = document.getElementById("editCode").value.trim();
+        let desc = document.getElementById("editDesc").value.trim();
+        let solution = document.getElementById("editSolution").value.trim();
+        let remark = document.getElementById("editRemark").value.trim();
+        let index = document.getElementById("editIndex").value;
+
+        if (!code || !desc || !solution) { 
+            alert("报错代码、故障描述、解决方案不能为空！"); 
+            return; 
+        }
+        
+        let newItem = { code, desc, solution, remark };
+        if (index !== "") {
+            // 编辑现有数据
+            allData[currentType][index] = newItem;
+        } else {
+            // 新增数据
+            allData[currentType].push(newItem);
+        }
+
+        await saveCloud();
+        closeEditForm();
+        renderTable();
+        alert(index !== "" ? "编辑成功 ✅" : "新增成功 ✅");
+    }
+
+    async function delFault(index) {
+        if (!isAdmin) return;
+        if (!confirm("确定删除这条故障记录吗？")) return;
+        allData[currentType].splice(index, 1);
+        await saveCloud();
+        renderTable();
+        alert("删除成功！");
+    }
+
+    // 页面加载完成后初始化
+    window.onload = async () => {
+        await loadCloud();
+    };
+</script>
+</body>
+</html>
